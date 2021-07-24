@@ -23,7 +23,7 @@ When I was researching how to do this I leaned on the following sites for guidan
 
 - https://github.com/jboone/gr-tpms
 - https://github.com/jboone/gr-tpms/blob/master/python/packet_check.py
-- github.com/xnk/pacific-tpms
+- https://github.com/xnk/pacific-tpms
 - https://github.com/merbanan/rtl_433/tree/master/src/devices
 
 # Transmit
@@ -48,7 +48,9 @@ I do a weird tagging method for each message because the GFSK Mod hierarchical b
 
 Here's a video of a program that runs the integrated transmit flow graph for two scenarios: low tire pressure and the self-test failed bit set to '1'.
 
-![tpms](examples/tpms.mp4)
+https://user-images.githubusercontent.com/12356089/126883222-476f65e1-6f48-4cbb-94e7-2658cf96a430.mp4
+
+[tpms](examples/tpms.mp4)
 
 # Receive
 
