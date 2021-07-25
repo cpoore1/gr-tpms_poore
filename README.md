@@ -40,7 +40,8 @@ The _message\_generator\_pdu_ block requires the following information:
 - Unknown1: 1 bit. No observable impact. Always set to 0.
 - Unknown2: 1 bit. No observable impact. Always set to 0.
 - Self-Test Failed: Makes warning light flash when set to 1. If I sent messages fast, the light would appear steady and then resume flashing when I stopped. If I sent messages slow, the flash would not always occur until I retried it from the start (maybe it is just me). I would believe it if this turned out to be the rapid pressure drop field.
-- Tire Pressure: 8 bits. Entered in PSI as a decimal. The warning light comes on for me at 25.41 PSI ('01101110'). The formula to produce the bits is: (pressure/0.363)+40. The next field is the tire pressure complement, which is the opposite of the pressure ('01101110'->'10010001'). The code calculates that for you along with the 8-bit CRC that immediately follows. The CRC works as xnk described it with the six bits of padding at the front with the 0x13 polynomial.
+- Tire Pressure: 8 bits. Entered in PSI as a decimal. The warning light comes on for me at 25.41 PSI ('01101110'). The formula to produce the bits is: (pressure/0.363)+40. The next field is the tire pressure complement, which is the opposite of the pressure ('01101110'->'10010001'). The code calculates that for you.
+- Temperature: 8 bits. The temperature in Celsius. The formula to convert the temperature to bits is: (temp_Celsius+40). The 8-bit CRC field immediately follows and is calculated for you. The CRC works as xnk described it with the six bits of padding at the front with the 0x13 polynomial.
 
 The block assembles the fields, applies the access code at the front, throws in a little extra at the end, and outputs the bytes as a pdu. The flow graph GFSK modulates the +/-40 kHz signal centered at 314.96 MHz. I sampled everything at 1 MS/s and took 100 samples/symbol for a bit rate of 10000 bps. It was close to what xnk observed, not exact, but this worked for me.
 
@@ -49,8 +50,6 @@ I do a weird tagging method for each message because the GFSK Mod hierarchical b
 Here's a video of a program that runs the integrated transmit flow graph for two scenarios: low tire pressure and the self-test failed bit set to '1'.
 
 https://user-images.githubusercontent.com/12356089/126883222-476f65e1-6f48-4cbb-94e7-2658cf96a430.mp4
-
-[tpms](examples/tpms.mp4)
 
 # Receive
 
