@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
-# Copyright 2021 <+YOU OR YOUR COMPANY+>.
-# 
+#
+# Copyright 2021 gr-tpms_poore author.
+#
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-# 
+#
+
 
 import numpy
 from gnuradio import gr
@@ -39,8 +40,7 @@ class decoder(gr.sync_block):
         self.do_analysis = False
         self.message_number = 1
         
-        self.message_port_register_out(pmt.intern('out'))
-        
+        self.message_port_register_out(pmt.intern('out'))          
 
 
     def work(self, input_items, output_items):
@@ -64,9 +64,9 @@ class decoder(gr.sync_block):
             if str(tag.value) == "#f":
                 self.end_tag = tag.offset
                 burst_size = self.end_tag - self.start_tag
-
+                
                 # Perfect Size
-                if burst_size > 600 and burst_size < 900: 
+                if (burst_size > 600) and (burst_size < 900): 
                     self.do_analysis = True
 
                     # Multiple Windows
@@ -90,8 +90,8 @@ class decoder(gr.sync_block):
         # Do Analysis on all the Data
         if self.do_analysis is True:
             
-            #print "DOING ANALYSIS!!"
-            #print len(self.if_data)
+            #print("DOING ANALYSIS!!")
+            #print(len(self.if_data))
 
             # Obtain Bitstream
             get_bits = self.getBitstream()
@@ -238,6 +238,5 @@ class decoder(gr.sync_block):
         return msg
                 
                 
-                
-                
-                
+            
+

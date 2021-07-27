@@ -1,10 +1,12 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-##################################################
+
+#
+# SPDX-License-Identifier: GPL-3.0
+#
 # GNU Radio Python Flow Graph
-# Title: Tpms Fsk Usrpb205Mini Receive
-# Generated: Sat Jul 24 18:24:20 2021
-##################################################
+# Title: TPMS_FSK_USRPB205mini_Receive
+# GNU Radio version: 3.8.1.0
 
 from distutils.version import StrictVersion
 
@@ -16,33 +18,34 @@ if __name__ == '__main__':
             x11 = ctypes.cdll.LoadLibrary('libX11.so')
             x11.XInitThreads()
         except:
-            print "Warning: failed to XInitThreads()"
+            print("Warning: failed to XInitThreads()")
 
 from PyQt5 import Qt
-from PyQt5 import Qt, QtCore
+from gnuradio import qtgui
+from gnuradio.filter import firdes
+import sip
 from gnuradio import analog
+import math
 from gnuradio import blocks
-from gnuradio import eng_notation
 from gnuradio import filter
 from gnuradio import gr
-from gnuradio import qtgui
-from gnuradio.eng_option import eng_option
-from gnuradio.filter import firdes
-from gnuradio.qtgui import Range, RangeWidget
-from optparse import OptionParser
-import math
-import sip
 import sys
+import signal
+from argparse import ArgumentParser
+from gnuradio.eng_arg import eng_float, intx
+from gnuradio import eng_notation
+from gnuradio import uhd
+import time
+from gnuradio.qtgui import Range, RangeWidget
 import tpms_poore
 from gnuradio import qtgui
-
 
 class TPMS_FSK_USRPB205mini_Receive(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Tpms Fsk Usrpb205Mini Receive")
+        gr.top_block.__init__(self, "TPMS_FSK_USRPB205mini_Receive")
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Tpms Fsk Usrpb205Mini Receive")
+        self.setWindowTitle("TPMS_FSK_USRPB205mini_Receive")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -62,10 +65,13 @@ class TPMS_FSK_USRPB205mini_Receive(gr.top_block, Qt.QWidget):
 
         self.settings = Qt.QSettings("GNU Radio", "TPMS_FSK_USRPB205mini_Receive")
 
-        if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
-            self.restoreGeometry(self.settings.value("geometry").toByteArray())
-        else:
-            self.restoreGeometry(self.settings.value("geometry", type=QtCore.QByteArray))
+        try:
+            if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
+                self.restoreGeometry(self.settings.value("geometry").toByteArray())
+            else:
+                self.restoreGeometry(self.settings.value("geometry"))
+        except:
+            pass
 
         ##################################################
         # Variables
@@ -79,70 +85,83 @@ class TPMS_FSK_USRPB205mini_Receive(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
-        self.tpms_poore_decoder_0 = tpms_poore.decoder()
         self._rx_usrp_gain_range = Range(0, 90, 1, 70, 200)
-        self._rx_usrp_gain_win = RangeWidget(self._rx_usrp_gain_range, self.set_rx_usrp_gain, "rx_usrp_gain", "counter_slider", float)
-        self.top_layout.addWidget(self._rx_usrp_gain_win)
-        self.qtgui_time_sink_x_0_1 = qtgui.time_sink_f(
-        	5000, #size
-        	1, #samp_rate
-        	"", #name
-        	1 #number of inputs
+        self._rx_usrp_gain_win = RangeWidget(self._rx_usrp_gain_range, self.set_rx_usrp_gain, 'rx_usrp_gain', "counter_slider", float)
+        self.top_grid_layout.addWidget(self._rx_usrp_gain_win)
+        self.uhd_usrp_source_0 = uhd.usrp_source(
+            ",".join(("", "")),
+            uhd.stream_args(
+                cpu_format="fc32",
+                args='',
+                channels=list(range(0,1)),
+            ),
         )
-        self.qtgui_time_sink_x_0_1.set_update_time(0.10)
-        self.qtgui_time_sink_x_0_1.set_y_axis(-1, 1)
+        self.uhd_usrp_source_0.set_subdev_spec(rx_usrp_channel, 0)
+        self.uhd_usrp_source_0.set_center_freq(rx_usrp_frequency, 0)
+        self.uhd_usrp_source_0.set_gain(rx_usrp_gain, 0)
+        self.uhd_usrp_source_0.set_antenna(rx_usrp_antenna, 0)
+        self.uhd_usrp_source_0.set_samp_rate(sample_rate)
+        self.uhd_usrp_source_0.set_time_now(uhd.time_spec(time.time()), uhd.ALL_MBOARDS)
+        self.tpms_poore_decoder_0 = tpms_poore.decoder()
+        self.qtgui_time_sink_x_0_0 = qtgui.time_sink_f(
+            5000, #size
+            1, #samp_rate
+            "", #name
+            1 #number of inputs
+        )
+        self.qtgui_time_sink_x_0_0.set_update_time(0.10)
+        self.qtgui_time_sink_x_0_0.set_y_axis(-1, 1)
 
-        self.qtgui_time_sink_x_0_1.set_y_label('Amplitude', "")
+        self.qtgui_time_sink_x_0_0.set_y_label('Amplitude', "")
 
-        self.qtgui_time_sink_x_0_1.enable_tags(-1, True)
-        self.qtgui_time_sink_x_0_1.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.qtgui_time_sink_x_0_1.enable_autoscale(False)
-        self.qtgui_time_sink_x_0_1.enable_grid(False)
-        self.qtgui_time_sink_x_0_1.enable_axis_labels(True)
-        self.qtgui_time_sink_x_0_1.enable_control_panel(False)
-        self.qtgui_time_sink_x_0_1.enable_stem_plot(False)
+        self.qtgui_time_sink_x_0_0.enable_tags(True)
+        self.qtgui_time_sink_x_0_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
+        self.qtgui_time_sink_x_0_0.enable_autoscale(False)
+        self.qtgui_time_sink_x_0_0.enable_grid(False)
+        self.qtgui_time_sink_x_0_0.enable_axis_labels(True)
+        self.qtgui_time_sink_x_0_0.enable_control_panel(False)
+        self.qtgui_time_sink_x_0_0.enable_stem_plot(False)
 
-        if not True:
-          self.qtgui_time_sink_x_0_1.disable_legend()
 
-        labels = ['', '', '', '', '',
-                  '', '', '', '', '']
+        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
+            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
         widths = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-                  "magenta", "yellow", "dark red", "dark green", "blue"]
-        styles = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-                   -1, -1, -1, -1, -1]
+            1, 1, 1, 1, 1]
+        colors = ['blue', 'red', 'green', 'black', 'cyan',
+            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
+            1.0, 1.0, 1.0, 1.0, 1.0]
+        styles = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        markers = [-1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1]
 
-        for i in xrange(1):
+
+        for i in range(1):
             if len(labels[i]) == 0:
-                self.qtgui_time_sink_x_0_1.set_line_label(i, "Data {0}".format(i))
+                self.qtgui_time_sink_x_0_0.set_line_label(i, "Data {0}".format(i))
             else:
-                self.qtgui_time_sink_x_0_1.set_line_label(i, labels[i])
-            self.qtgui_time_sink_x_0_1.set_line_width(i, widths[i])
-            self.qtgui_time_sink_x_0_1.set_line_color(i, colors[i])
-            self.qtgui_time_sink_x_0_1.set_line_style(i, styles[i])
-            self.qtgui_time_sink_x_0_1.set_line_marker(i, markers[i])
-            self.qtgui_time_sink_x_0_1.set_line_alpha(i, alphas[i])
+                self.qtgui_time_sink_x_0_0.set_line_label(i, labels[i])
+            self.qtgui_time_sink_x_0_0.set_line_width(i, widths[i])
+            self.qtgui_time_sink_x_0_0.set_line_color(i, colors[i])
+            self.qtgui_time_sink_x_0_0.set_line_style(i, styles[i])
+            self.qtgui_time_sink_x_0_0.set_line_marker(i, markers[i])
+            self.qtgui_time_sink_x_0_0.set_line_alpha(i, alphas[i])
 
-        self._qtgui_time_sink_x_0_1_win = sip.wrapinstance(self.qtgui_time_sink_x_0_1.pyqwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_time_sink_x_0_1_win)
+        self._qtgui_time_sink_x_0_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0_0.pyqwidget(), Qt.QWidget)
+        self.top_grid_layout.addWidget(self._qtgui_time_sink_x_0_0_win)
         self.qtgui_time_sink_x_0 = qtgui.time_sink_c(
-        	40000, #size
-        	1, #samp_rate
-        	"", #name
-        	1 #number of inputs
+            40000, #size
+            1, #samp_rate
+            "", #name
+            1 #number of inputs
         )
         self.qtgui_time_sink_x_0.set_update_time(0.10)
         self.qtgui_time_sink_x_0.set_y_axis(-1, 1)
 
         self.qtgui_time_sink_x_0.set_y_label('Amplitude', "")
 
-        self.qtgui_time_sink_x_0.enable_tags(-1, True)
+        self.qtgui_time_sink_x_0.enable_tags(True)
         self.qtgui_time_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
         self.qtgui_time_sink_x_0.enable_autoscale(False)
         self.qtgui_time_sink_x_0.enable_grid(False)
@@ -150,25 +169,24 @@ class TPMS_FSK_USRPB205mini_Receive(gr.top_block, Qt.QWidget):
         self.qtgui_time_sink_x_0.enable_control_panel(False)
         self.qtgui_time_sink_x_0.enable_stem_plot(False)
 
-        if not True:
-          self.qtgui_time_sink_x_0.disable_legend()
 
-        labels = ['', '', '', '', '',
-                  '', '', '', '', '']
+        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
+            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
         widths = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-                  "magenta", "yellow", "dark red", "dark green", "blue"]
-        styles = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-                   -1, -1, -1, -1, -1]
+            1, 1, 1, 1, 1]
+        colors = ['blue', 'red', 'green', 'black', 'cyan',
+            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
+            1.0, 1.0, 1.0, 1.0, 1.0]
+        styles = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        markers = [-1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1]
 
-        for i in xrange(2):
+
+        for i in range(2):
             if len(labels[i]) == 0:
-                if(i % 2 == 0):
+                if (i % 2 == 0):
                     self.qtgui_time_sink_x_0.set_line_label(i, "Re{{Data {0}}}".format(i/2))
                 else:
                     self.qtgui_time_sink_x_0.set_line_label(i, "Im{{Data {0}}}".format(i/2))
@@ -181,43 +199,43 @@ class TPMS_FSK_USRPB205mini_Receive(gr.top_block, Qt.QWidget):
             self.qtgui_time_sink_x_0.set_line_alpha(i, alphas[i])
 
         self._qtgui_time_sink_x_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0.pyqwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_time_sink_x_0_win)
-        self.fir_filter_xxx_1_0 = filter.fir_filter_fff(1, (20*[0.05]))
-        self.fir_filter_xxx_1_0.declare_sample_delay(0)
-        self.fir_filter_xxx_0 = filter.fir_filter_fff(1, (4*[0.25]))
+        self.top_grid_layout.addWidget(self._qtgui_time_sink_x_0_win)
+        self.fir_filter_xxx_0_0 = filter.fir_filter_fff(1, 4*[0.25])
+        self.fir_filter_xxx_0_0.declare_sample_delay(0)
+        self.fir_filter_xxx_0 = filter.fir_filter_fff(1, 20*[0.05])
         self.fir_filter_xxx_0.declare_sample_delay(0)
-        self.blocks_threshold_ff_0_0 = blocks.threshold_ff(.004, .004, 0)
-        self.blocks_threshold_ff_0 = blocks.threshold_ff(-4, -4, 0)
+        self.blocks_threshold_ff_0_0 = blocks.threshold_ff(-4, -4, 0)
+        self.blocks_threshold_ff_0 = blocks.threshold_ff(0.004, 0.004, 0)
         self.blocks_message_debug_0 = blocks.message_debug()
         self.blocks_keep_one_in_n_0 = blocks.keep_one_in_n(gr.sizeof_float*1, 20)
-        self.blocks_float_to_short_1 = blocks.float_to_short(1, 1)
-        self.blocks_file_source_0_0_0 = blocks.file_source(gr.sizeof_gr_complex*1, '/home/user/Desktop/newest_tpms_recordings/prius_front_left_bad5_cropped.bin', True)
-        self.blocks_delay_1 = blocks.delay(gr.sizeof_gr_complex*1, 20)
-        self.blocks_complex_to_mag_squared_0_0 = blocks.complex_to_mag_squared(1)
-        self.blocks_burst_tagger_1 = blocks.burst_tagger(gr.sizeof_gr_complex)
-        self.blocks_burst_tagger_1.set_true_tag('burst',True)
-        self.blocks_burst_tagger_1.set_false_tag('burst',False)
-
+        self.blocks_float_to_short_0 = blocks.float_to_short(1, 1)
+        self.blocks_delay_0 = blocks.delay(gr.sizeof_gr_complex*1, 20)
+        self.blocks_complex_to_mag_squared_0 = blocks.complex_to_mag_squared(1)
+        self.blocks_burst_tagger_0 = blocks.burst_tagger(gr.sizeof_gr_complex)
+        self.blocks_burst_tagger_0.set_true_tag('burst',True)
+        self.blocks_burst_tagger_0.set_false_tag('burst',False)
         self.analog_quadrature_demod_cf_0 = analog.quadrature_demod_cf(sample_rate/(2*math.pi*80000/8.0))
+
+
 
         ##################################################
         # Connections
         ##################################################
         self.msg_connect((self.tpms_poore_decoder_0, 'out'), (self.blocks_message_debug_0, 'print'))
-        self.connect((self.analog_quadrature_demod_cf_0, 0), (self.fir_filter_xxx_0, 0))
-        self.connect((self.blocks_burst_tagger_1, 0), (self.analog_quadrature_demod_cf_0, 0))
-        self.connect((self.blocks_burst_tagger_1, 0), (self.qtgui_time_sink_x_0, 0))
-        self.connect((self.blocks_complex_to_mag_squared_0_0, 0), (self.fir_filter_xxx_1_0, 0))
-        self.connect((self.blocks_delay_1, 0), (self.blocks_burst_tagger_1, 0))
-        self.connect((self.blocks_file_source_0_0_0, 0), (self.blocks_complex_to_mag_squared_0_0, 0))
-        self.connect((self.blocks_file_source_0_0_0, 0), (self.blocks_delay_1, 0))
-        self.connect((self.blocks_float_to_short_1, 0), (self.blocks_burst_tagger_1, 1))
-        self.connect((self.blocks_keep_one_in_n_0, 0), (self.qtgui_time_sink_x_0_1, 0))
+        self.connect((self.analog_quadrature_demod_cf_0, 0), (self.fir_filter_xxx_0_0, 0))
+        self.connect((self.blocks_burst_tagger_0, 0), (self.analog_quadrature_demod_cf_0, 0))
+        self.connect((self.blocks_burst_tagger_0, 0), (self.qtgui_time_sink_x_0, 0))
+        self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.fir_filter_xxx_0, 0))
+        self.connect((self.blocks_delay_0, 0), (self.blocks_burst_tagger_0, 0))
+        self.connect((self.blocks_float_to_short_0, 0), (self.blocks_burst_tagger_0, 1))
+        self.connect((self.blocks_keep_one_in_n_0, 0), (self.qtgui_time_sink_x_0_0, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.tpms_poore_decoder_0, 0))
-        self.connect((self.blocks_threshold_ff_0, 0), (self.blocks_keep_one_in_n_0, 0))
-        self.connect((self.blocks_threshold_ff_0_0, 0), (self.blocks_float_to_short_1, 0))
+        self.connect((self.blocks_threshold_ff_0, 0), (self.blocks_float_to_short_0, 0))
+        self.connect((self.blocks_threshold_ff_0_0, 0), (self.blocks_keep_one_in_n_0, 0))
         self.connect((self.fir_filter_xxx_0, 0), (self.blocks_threshold_ff_0, 0))
-        self.connect((self.fir_filter_xxx_1_0, 0), (self.blocks_threshold_ff_0_0, 0))
+        self.connect((self.fir_filter_xxx_0_0, 0), (self.blocks_threshold_ff_0_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_complex_to_mag_squared_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_delay_0, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "TPMS_FSK_USRPB205mini_Receive")
@@ -230,18 +248,21 @@ class TPMS_FSK_USRPB205mini_Receive(gr.top_block, Qt.QWidget):
     def set_sample_rate(self, sample_rate):
         self.sample_rate = sample_rate
         self.analog_quadrature_demod_cf_0.set_gain(self.sample_rate/(2*math.pi*80000/8.0))
+        self.uhd_usrp_source_0.set_samp_rate(self.sample_rate)
 
     def get_rx_usrp_gain(self):
         return self.rx_usrp_gain
 
     def set_rx_usrp_gain(self, rx_usrp_gain):
         self.rx_usrp_gain = rx_usrp_gain
+        self.uhd_usrp_source_0.set_gain(self.rx_usrp_gain, 0)
 
     def get_rx_usrp_frequency(self):
         return self.rx_usrp_frequency
 
     def set_rx_usrp_frequency(self, rx_usrp_frequency):
         self.rx_usrp_frequency = rx_usrp_frequency
+        self.uhd_usrp_source_0.set_center_freq(self.rx_usrp_frequency, 0)
 
     def get_rx_usrp_channel(self):
         return self.rx_usrp_channel
@@ -254,6 +275,8 @@ class TPMS_FSK_USRPB205mini_Receive(gr.top_block, Qt.QWidget):
 
     def set_rx_usrp_antenna(self, rx_usrp_antenna):
         self.rx_usrp_antenna = rx_usrp_antenna
+        self.uhd_usrp_source_0.set_antenna(self.rx_usrp_antenna, 0)
+
 
 
 def main(top_block_cls=TPMS_FSK_USRPB205mini_Receive, options=None):
@@ -266,6 +289,16 @@ def main(top_block_cls=TPMS_FSK_USRPB205mini_Receive, options=None):
     tb = top_block_cls()
     tb.start()
     tb.show()
+
+    def sig_handler(sig=None, frame=None):
+        Qt.QApplication.quit()
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+
+    timer = Qt.QTimer()
+    timer.start(500)
+    timer.timeout.connect(lambda: None)
 
     def quitting():
         tb.stop()

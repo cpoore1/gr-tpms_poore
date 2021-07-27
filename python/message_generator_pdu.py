@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
-# Copyright 2021 <+YOU OR YOUR COMPANY+>.
-# 
+#
+# Copyright 2021 gr-tpms_poore author.
+#
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-# 
+#
+
 
 import numpy
 from gnuradio import gr
@@ -76,7 +77,7 @@ class message_generator_pdu(gr.sync_block):
             name="message_generator_pdu",
             in_sig=None,
             out_sig=None)
-        
+            
         self.message_port_register_out(pmt.intern('out'))
         
         # Default Values
@@ -97,10 +98,9 @@ class message_generator_pdu(gr.sync_block):
         c_thread.start()
 
 
-    
     def generateMessage(self):
         while True:
-            print "GENERATE MESSAGE"
+            print("GENERATE MESSAGE")
                        
             # Access Code
             access_code = '0000001111110'  #'000000111111001', some say the access code is: '00111111001' but the last '01' must translate to a manchester encoded '0' in the sensor id for all the fields to align
@@ -150,9 +150,9 @@ class message_generator_pdu(gr.sync_block):
             bits_no_crc = sensor_id + battery_status + counter + unknown1 + unknown2 + self_test_failed + tire_pressure + tire_pressure_complement + tire_temperature
             crc_data =  '000000' + bits_no_crc + ''
             crc_data_bytes = []
-            for n in range(0,len(crc_data)/8):
-                crc_data_bytes.append(int(crc_data[n*8:n*8+8],2))
-            crc_data_bytes = str(bytearray(crc_data_bytes))            
+            for n in range(0,int(len(crc_data)/8)):
+                crc_data_bytes.append(int(crc_data[n*8:n*8+8],2))  
+            crc_data_bytes = bytearray(crc_data_bytes)       
             check_fn = crcmod.mkCrcFun(0x100 | 0x13, initCrc=0x0, rev=False)
             crc = '{0:08b}'.format(check_fn(crc_data_bytes))
             
@@ -186,8 +186,8 @@ class message_generator_pdu(gr.sync_block):
             # Assemble
             data = access_code + get_man + '00000'  # there are always a few extra bits, next line needs a round number too
             hex_data = '%0*X' % ((len(data) + 0) // 4, int(data, 2))  # 03F2D2B4AB4AD2AD555554D2CD4B54CD4CB2A0
-            data = hex_data.decode('hex')  # Python 2
-            #data = bytes.fromhex(hex_string)  # Python 3
+            #data = hex_data.decode('hex')  # Python 2
+            data = bytes.fromhex(hex_data)  # Python 3
                         
             # Send the PDU
             car = pmt.make_dict()
@@ -205,4 +205,5 @@ class message_generator_pdu(gr.sync_block):
 
             # Sleep and Repeat
             time.sleep(self.repetition_interval)
+
 

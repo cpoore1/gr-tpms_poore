@@ -22,15 +22,16 @@
 This is the GNU Radio TPMS_POORE module. Place your Python package
 description here (python/__init__.py).
 '''
+from __future__ import unicode_literals
 
 # import swig generated symbols into the tpms_poore namespace
 try:
-	# this might fail if the module is python-only
-	from tpms_poore_swig import *
+    # this might fail if the module is python-only
+    from .tpms_poore_swig import *
 except ImportError:
-	pass
+    pass
 
 # import any pure python here
-from message_generator_pdu import message_generator_pdu
-from decoder import decoder
+from .decoder import decoder
+from .message_generator_pdu import message_generator_pdu
 #

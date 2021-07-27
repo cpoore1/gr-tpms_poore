@@ -1,10 +1,12 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-##################################################
+
+#
+# SPDX-License-Identifier: GPL-3.0
+#
 # GNU Radio Python Flow Graph
-# Title: Tpms Fsk Usrpb205Mini Transmit
-# Generated: Sat Jul 24 18:19:15 2021
-##################################################
+# Title: TPMS_FSK_USRPB205mini_Transmit
+# GNU Radio version: 3.8.1.0
 
 from distutils.version import StrictVersion
 
@@ -16,34 +18,33 @@ if __name__ == '__main__':
             x11 = ctypes.cdll.LoadLibrary('libX11.so')
             x11.XInitThreads()
         except:
-            print "Warning: failed to XInitThreads()"
+            print("Warning: failed to XInitThreads()")
 
 from PyQt5 import Qt
-from PyQt5 import Qt, QtCore
+from gnuradio import qtgui
+from gnuradio.filter import firdes
+import sip
 from gnuradio import analog
+import math
 from gnuradio import blocks
 from gnuradio import digital
-from gnuradio import eng_notation
 from gnuradio import gr
-from gnuradio import qtgui
-from gnuradio import uhd
-from gnuradio.eng_option import eng_option
-from gnuradio.filter import firdes
-from optparse import OptionParser
-import math
-import sip
 import sys
+import signal
+from argparse import ArgumentParser
+from gnuradio.eng_arg import eng_float, intx
+from gnuradio import eng_notation
+from gnuradio import uhd
 import time
 import tpms_poore
 from gnuradio import qtgui
 
-
 class TPMS_FSK_USRPB205mini_Transmit(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Tpms Fsk Usrpb205Mini Transmit")
+        gr.top_block.__init__(self, "TPMS_FSK_USRPB205mini_Transmit")
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Tpms Fsk Usrpb205Mini Transmit")
+        self.setWindowTitle("TPMS_FSK_USRPB205mini_Transmit")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -63,23 +64,26 @@ class TPMS_FSK_USRPB205mini_Transmit(gr.top_block, Qt.QWidget):
 
         self.settings = Qt.QSettings("GNU Radio", "TPMS_FSK_USRPB205mini_Transmit")
 
-        if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
-            self.restoreGeometry(self.settings.value("geometry").toByteArray())
-        else:
-            self.restoreGeometry(self.settings.value("geometry", type=QtCore.QByteArray))
+        try:
+            if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
+                self.restoreGeometry(self.settings.value("geometry").toByteArray())
+            else:
+                self.restoreGeometry(self.settings.value("geometry"))
+        except:
+            pass
 
         ##################################################
         # Variables
         ##################################################
         self.unknown2 = unknown2 = "0"
         self.unknown1 = unknown1 = "0"
-        self.tx_gain = tx_gain = 40
+        self.tx_gain = tx_gain = 60
         self.tx_freq = tx_freq = 314.96e6
         self.tire_temperature_c = tire_temperature_c = 20
         self.tire_pressure_psi = tire_pressure_psi = 5
         self.sensor_id = sensor_id = "528A510"
         self.self_test = self_test = "0"
-        self.samp_rate = samp_rate = 1e6
+        self.sample_rate = sample_rate = 1e6
         self.repetition_interval = repetition_interval = 1
         self.counter = counter = "00"
         self.configuration = configuration = 1
@@ -88,142 +92,147 @@ class TPMS_FSK_USRPB205mini_Transmit(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
-        self.uhd_usrp_sink_1_0 = uhd.usrp_sink(
-        	",".join(("", "")),
-        	uhd.stream_args(
-        		cpu_format="fc32",
-        		channels=range(1),
-        	),
-        	'packet_len',
+        self.uhd_usrp_sink_0 = uhd.usrp_sink(
+            ",".join(("", "")),
+            uhd.stream_args(
+                cpu_format="fc32",
+                args='',
+                channels=list(range(0,1)),
+            ),
+            'packet_len',
         )
-        self.uhd_usrp_sink_1_0.set_samp_rate(1e6)
-        self.uhd_usrp_sink_1_0.set_center_freq(tx_freq, 0)
-        self.uhd_usrp_sink_1_0.set_gain(tx_gain, 0)
-        self.uhd_usrp_sink_1_0.set_antenna('TX/RX', 0)
-        self.tpms_poore_message_generator_pdu_0 = tpms_poore.message_generator_pdu(repetition_interval, configuration, sensor_id, battery_status, counter, unknown1, unknown2, self_test, tire_pressure_psi, tire_temperature_c)
-        self.qtgui_time_sink_x_0_0_0_1 = qtgui.time_sink_c(
-        	80000, #size
-        	1, #samp_rate
-        	"", #name
-        	1 #number of inputs
+        self.uhd_usrp_sink_0.set_subdev_spec("A:A", 0)
+        self.uhd_usrp_sink_0.set_center_freq(tx_freq, 0)
+        self.uhd_usrp_sink_0.set_gain(tx_gain, 0)
+        self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
+        self.uhd_usrp_sink_0.set_samp_rate(sample_rate)
+        self.uhd_usrp_sink_0.set_time_now(uhd.time_spec(time.time()), uhd.ALL_MBOARDS)
+        self.tpms_poore_message_generator_pdu_0 = tpms_poore.message_generator_pdu(repetition_interval,configuration,sensor_id,battery_status,counter,unknown1,unknown2,self_test,tire_pressure_psi,tire_temperature_c)
+        self.qtgui_time_sink_x_0_0 = qtgui.time_sink_c(
+            80000, #size
+            1, #samp_rate
+            "", #name
+            1 #number of inputs
         )
-        self.qtgui_time_sink_x_0_0_0_1.set_update_time(0.10)
-        self.qtgui_time_sink_x_0_0_0_1.set_y_axis(-100, 100)
+        self.qtgui_time_sink_x_0_0.set_update_time(0.10)
+        self.qtgui_time_sink_x_0_0.set_y_axis(-1, 1)
 
-        self.qtgui_time_sink_x_0_0_0_1.set_y_label('Amplitude', "")
+        self.qtgui_time_sink_x_0_0.set_y_label('Amplitude', "")
 
-        self.qtgui_time_sink_x_0_0_0_1.enable_tags(-1, True)
-        self.qtgui_time_sink_x_0_0_0_1.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.qtgui_time_sink_x_0_0_0_1.enable_autoscale(True)
-        self.qtgui_time_sink_x_0_0_0_1.enable_grid(True)
-        self.qtgui_time_sink_x_0_0_0_1.enable_axis_labels(True)
-        self.qtgui_time_sink_x_0_0_0_1.enable_control_panel(False)
-        self.qtgui_time_sink_x_0_0_0_1.enable_stem_plot(False)
+        self.qtgui_time_sink_x_0_0.enable_tags(True)
+        self.qtgui_time_sink_x_0_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
+        self.qtgui_time_sink_x_0_0.enable_autoscale(True)
+        self.qtgui_time_sink_x_0_0.enable_grid(False)
+        self.qtgui_time_sink_x_0_0.enable_axis_labels(True)
+        self.qtgui_time_sink_x_0_0.enable_control_panel(False)
+        self.qtgui_time_sink_x_0_0.enable_stem_plot(False)
 
-        if not True:
-          self.qtgui_time_sink_x_0_0_0_1.disable_legend()
 
-        labels = ['', '', '', '', '',
-                  '', '', '', '', '']
+        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
+            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
         widths = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-                  "magenta", "yellow", "dark red", "dark green", "blue"]
-        styles = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-                   -1, -1, -1, -1, -1]
+            1, 1, 1, 1, 1]
+        colors = ['blue', 'red', 'green', 'black', 'cyan',
+            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
+            1.0, 1.0, 1.0, 1.0, 1.0]
+        styles = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        markers = [-1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1]
 
-        for i in xrange(2):
+
+        for i in range(2):
             if len(labels[i]) == 0:
-                if(i % 2 == 0):
-                    self.qtgui_time_sink_x_0_0_0_1.set_line_label(i, "Re{{Data {0}}}".format(i/2))
+                if (i % 2 == 0):
+                    self.qtgui_time_sink_x_0_0.set_line_label(i, "Re{{Data {0}}}".format(i/2))
                 else:
-                    self.qtgui_time_sink_x_0_0_0_1.set_line_label(i, "Im{{Data {0}}}".format(i/2))
+                    self.qtgui_time_sink_x_0_0.set_line_label(i, "Im{{Data {0}}}".format(i/2))
             else:
-                self.qtgui_time_sink_x_0_0_0_1.set_line_label(i, labels[i])
-            self.qtgui_time_sink_x_0_0_0_1.set_line_width(i, widths[i])
-            self.qtgui_time_sink_x_0_0_0_1.set_line_color(i, colors[i])
-            self.qtgui_time_sink_x_0_0_0_1.set_line_style(i, styles[i])
-            self.qtgui_time_sink_x_0_0_0_1.set_line_marker(i, markers[i])
-            self.qtgui_time_sink_x_0_0_0_1.set_line_alpha(i, alphas[i])
+                self.qtgui_time_sink_x_0_0.set_line_label(i, labels[i])
+            self.qtgui_time_sink_x_0_0.set_line_width(i, widths[i])
+            self.qtgui_time_sink_x_0_0.set_line_color(i, colors[i])
+            self.qtgui_time_sink_x_0_0.set_line_style(i, styles[i])
+            self.qtgui_time_sink_x_0_0.set_line_marker(i, markers[i])
+            self.qtgui_time_sink_x_0_0.set_line_alpha(i, alphas[i])
 
-        self._qtgui_time_sink_x_0_0_0_1_win = sip.wrapinstance(self.qtgui_time_sink_x_0_0_0_1.pyqwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_time_sink_x_0_0_0_1_win)
-        self.qtgui_time_sink_x_0_0_0 = qtgui.time_sink_f(
-        	80000, #size
-        	1, #samp_rate
-        	"", #name
-        	1 #number of inputs
+        self._qtgui_time_sink_x_0_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0_0.pyqwidget(), Qt.QWidget)
+        self.top_grid_layout.addWidget(self._qtgui_time_sink_x_0_0_win)
+        self.qtgui_time_sink_x_0 = qtgui.time_sink_f(
+            80000, #size
+            1, #samp_rate
+            "", #name
+            1 #number of inputs
         )
-        self.qtgui_time_sink_x_0_0_0.set_update_time(0.10)
-        self.qtgui_time_sink_x_0_0_0.set_y_axis(-100, 100)
+        self.qtgui_time_sink_x_0.set_update_time(0.10)
+        self.qtgui_time_sink_x_0.set_y_axis(-1, 1)
 
-        self.qtgui_time_sink_x_0_0_0.set_y_label('Amplitude', "")
+        self.qtgui_time_sink_x_0.set_y_label('Amplitude', "")
 
-        self.qtgui_time_sink_x_0_0_0.enable_tags(-1, True)
-        self.qtgui_time_sink_x_0_0_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.qtgui_time_sink_x_0_0_0.enable_autoscale(True)
-        self.qtgui_time_sink_x_0_0_0.enable_grid(True)
-        self.qtgui_time_sink_x_0_0_0.enable_axis_labels(True)
-        self.qtgui_time_sink_x_0_0_0.enable_control_panel(False)
-        self.qtgui_time_sink_x_0_0_0.enable_stem_plot(False)
+        self.qtgui_time_sink_x_0.enable_tags(True)
+        self.qtgui_time_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
+        self.qtgui_time_sink_x_0.enable_autoscale(True)
+        self.qtgui_time_sink_x_0.enable_grid(False)
+        self.qtgui_time_sink_x_0.enable_axis_labels(True)
+        self.qtgui_time_sink_x_0.enable_control_panel(False)
+        self.qtgui_time_sink_x_0.enable_stem_plot(False)
 
-        if not True:
-          self.qtgui_time_sink_x_0_0_0.disable_legend()
 
-        labels = ['', '', '', '', '',
-                  '', '', '', '', '']
+        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
+            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
         widths = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-                  "magenta", "yellow", "dark red", "dark green", "blue"]
-        styles = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-                   -1, -1, -1, -1, -1]
+            1, 1, 1, 1, 1]
+        colors = ['blue', 'red', 'green', 'black', 'cyan',
+            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
+            1.0, 1.0, 1.0, 1.0, 1.0]
+        styles = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        markers = [-1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1]
 
-        for i in xrange(1):
+
+        for i in range(1):
             if len(labels[i]) == 0:
-                self.qtgui_time_sink_x_0_0_0.set_line_label(i, "Data {0}".format(i))
+                self.qtgui_time_sink_x_0.set_line_label(i, "Data {0}".format(i))
             else:
-                self.qtgui_time_sink_x_0_0_0.set_line_label(i, labels[i])
-            self.qtgui_time_sink_x_0_0_0.set_line_width(i, widths[i])
-            self.qtgui_time_sink_x_0_0_0.set_line_color(i, colors[i])
-            self.qtgui_time_sink_x_0_0_0.set_line_style(i, styles[i])
-            self.qtgui_time_sink_x_0_0_0.set_line_marker(i, markers[i])
-            self.qtgui_time_sink_x_0_0_0.set_line_alpha(i, alphas[i])
+                self.qtgui_time_sink_x_0.set_line_label(i, labels[i])
+            self.qtgui_time_sink_x_0.set_line_width(i, widths[i])
+            self.qtgui_time_sink_x_0.set_line_color(i, colors[i])
+            self.qtgui_time_sink_x_0.set_line_style(i, styles[i])
+            self.qtgui_time_sink_x_0.set_line_marker(i, markers[i])
+            self.qtgui_time_sink_x_0.set_line_alpha(i, alphas[i])
 
-        self._qtgui_time_sink_x_0_0_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0_0_0.pyqwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_time_sink_x_0_0_0_win)
+        self._qtgui_time_sink_x_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0.pyqwidget(), Qt.QWidget)
+        self.top_grid_layout.addWidget(self._qtgui_time_sink_x_0_win)
         self.digital_gfsk_mod_0 = digital.gfsk_mod(
-        	samples_per_symbol=100,
-        	sensitivity=0.25,
-        	bt=0.65,
-        	verbose=False,
-        	log=False,
-        )
+            samples_per_symbol=100,
+            sensitivity=0.25,
+            bt=0.65,
+            verbose=False,
+            log=False)
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, sample_rate,True)
         self.blocks_tag_gate_0 = blocks.tag_gate(gr.sizeof_gr_complex * 1, False)
+        self.blocks_tag_gate_0.set_single_key("")
         self.blocks_stream_to_tagged_stream_0 = blocks.stream_to_tagged_stream(gr.sizeof_gr_complex, 1, 100*8*20, "packet_len")
         self.blocks_pdu_to_tagged_stream_0 = blocks.pdu_to_tagged_stream(blocks.byte_t, 'packet_len')
         self.blocks_delay_0 = blocks.delay(gr.sizeof_gr_complex*1, 15800)
-        self.analog_quadrature_demod_cf_0_0 = analog.quadrature_demod_cf(samp_rate/(2*math.pi*80000/8.0))
+        self.analog_quadrature_demod_cf_0 = analog.quadrature_demod_cf(sample_rate/(2*math.pi*80000/8.0))
+
+
 
         ##################################################
         # Connections
         ##################################################
         self.msg_connect((self.tpms_poore_message_generator_pdu_0, 'out'), (self.blocks_pdu_to_tagged_stream_0, 'pdus'))
-        self.connect((self.analog_quadrature_demod_cf_0_0, 0), (self.qtgui_time_sink_x_0_0_0, 0))
+        self.connect((self.analog_quadrature_demod_cf_0, 0), (self.qtgui_time_sink_x_0, 0))
         self.connect((self.blocks_delay_0, 0), (self.blocks_stream_to_tagged_stream_0, 0))
         self.connect((self.blocks_pdu_to_tagged_stream_0, 0), (self.digital_gfsk_mod_0, 0))
-        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.analog_quadrature_demod_cf_0_0, 0))
-        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.qtgui_time_sink_x_0_0_0_1, 0))
-        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.uhd_usrp_sink_1_0, 0))
+        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.analog_quadrature_demod_cf_0, 0))
+        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.blocks_throttle_0, 0))
+        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.uhd_usrp_sink_0, 0))
         self.connect((self.blocks_tag_gate_0, 0), (self.blocks_delay_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.qtgui_time_sink_x_0_0, 0))
         self.connect((self.digital_gfsk_mod_0, 0), (self.blocks_tag_gate_0, 0))
 
     def closeEvent(self, event):
@@ -248,15 +257,14 @@ class TPMS_FSK_USRPB205mini_Transmit(gr.top_block, Qt.QWidget):
 
     def set_tx_gain(self, tx_gain):
         self.tx_gain = tx_gain
-        self.uhd_usrp_sink_1_0.set_gain(self.tx_gain, 0)
-
+        self.uhd_usrp_sink_0.set_gain(self.tx_gain, 0)
 
     def get_tx_freq(self):
         return self.tx_freq
 
     def set_tx_freq(self, tx_freq):
         self.tx_freq = tx_freq
-        self.uhd_usrp_sink_1_0.set_center_freq(self.tx_freq, 0)
+        self.uhd_usrp_sink_0.set_center_freq(self.tx_freq, 0)
 
     def get_tire_temperature_c(self):
         return self.tire_temperature_c
@@ -282,12 +290,14 @@ class TPMS_FSK_USRPB205mini_Transmit(gr.top_block, Qt.QWidget):
     def set_self_test(self, self_test):
         self.self_test = self_test
 
-    def get_samp_rate(self):
-        return self.samp_rate
+    def get_sample_rate(self):
+        return self.sample_rate
 
-    def set_samp_rate(self, samp_rate):
-        self.samp_rate = samp_rate
-        self.analog_quadrature_demod_cf_0_0.set_gain(self.samp_rate/(2*math.pi*80000/8.0))
+    def set_sample_rate(self, sample_rate):
+        self.sample_rate = sample_rate
+        self.analog_quadrature_demod_cf_0.set_gain(self.sample_rate/(2*math.pi*80000/8.0))
+        self.blocks_throttle_0.set_sample_rate(self.sample_rate)
+        self.uhd_usrp_sink_0.set_samp_rate(self.sample_rate)
 
     def get_repetition_interval(self):
         return self.repetition_interval
@@ -314,6 +324,7 @@ class TPMS_FSK_USRPB205mini_Transmit(gr.top_block, Qt.QWidget):
         self.battery_status = battery_status
 
 
+
 def main(top_block_cls=TPMS_FSK_USRPB205mini_Transmit, options=None):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
@@ -324,6 +335,16 @@ def main(top_block_cls=TPMS_FSK_USRPB205mini_Transmit, options=None):
     tb = top_block_cls()
     tb.start()
     tb.show()
+
+    def sig_handler(sig=None, frame=None):
+        Qt.QApplication.quit()
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+
+    timer = Qt.QTimer()
+    timer.start(500)
+    timer.timeout.connect(lambda: None)
 
     def quitting():
         tb.stop()
