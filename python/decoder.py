@@ -98,11 +98,12 @@ class decoder(gr.sync_block):
 
             # Parse Bits
             if len(get_bits) > 130:
+                #print(len(get_bits))
                 get_message = self.decodeBitstream(get_bits)
 
                 # Print to Output Port
-                self.message_port_pub(pmt.intern("out"), pmt.to_pmt(get_message))
-
+                if get_message != "-1":
+                    self.message_port_pub(pmt.intern("out"), pmt.to_pmt(get_message))
 
             # Reset
             self.start_tag = 0
@@ -182,60 +183,64 @@ class decoder(gr.sync_block):
         
     def decodeBitstream(self, get_bits):
         """ Manchester decodes the bitstream and diffs the bits to produce a message.
-        """        
-        # Manchester Decode the Bits
-        get_dec_man = ''
-        for m in range(0,len(get_bits),2):
-            if get_bits[m:m+2] == '01':
-                get_dec_man = get_dec_man + '0'
-            elif get_bits[m:m+2] == '10':
-                get_dec_man = get_dec_man + '1'
-            else:
-                get_dec_man = get_dec_man + '?'
-                
-        # Differentiate the Decoded Bits
-        get_diff = ''
-        if len(get_dec_man) > 1:                    
-            # Differentiate
-            for b in range(1,len(get_dec_man)):
-                if get_dec_man[b-1] == get_dec_man[b]:
-                    get_diff = get_diff + '0'
+        """     
+        try:   
+            # Manchester Decode the Bits
+            get_dec_man = ''
+            for m in range(0,len(get_bits),2):
+                if get_bits[m:m+2] == '01':
+                    get_dec_man = get_dec_man + '0'
+                elif get_bits[m:m+2] == '10':
+                    get_dec_man = get_dec_man + '1'
                 else:
-                    get_diff = get_diff + '1'                    
+                    get_dec_man = get_dec_man + '?'
+                    
+            # Differentiate the Decoded Bits
+            get_diff = ''
+            if len(get_dec_man) > 1:                    
+                # Differentiate
+                for b in range(1,len(get_dec_man)):
+                    if get_dec_man[b-1] == get_dec_man[b]:
+                        get_diff = get_diff + '0'
+                    else:
+                        get_diff = get_diff + '1'                    
 
-        # Generate Output Message
-        if len(get_diff) >= 66:
-            sensor_id = '%.*X' % (2, int('0b'+get_diff[0:28], 0))
-            battery_status = get_diff[28]
-            counter = get_diff[29:31]
-            unknown1 = get_diff[31]
-            unknown2 = get_diff[32]
-            self_test = get_diff[33]
-            tire_pressure = get_diff[34:42]
-            tp_psi = str((int(tire_pressure,2)-40)*.363)
-            tp_complement = get_diff[42:50]
-            tire_temp = get_diff[50:58]
-            temp_celsius = str(int(tire_temp,2)-40)
-            temp_fahr = str((int(temp_celsius)*9/5)+32)
-            crc = get_diff[58:66]
-            
-            msg = "Message #" + str(self.message_number) + ":\n" + \
-                  "Bitstream: " + get_bits + "\n" + \
-                  "Decoded Bits: " + get_diff + "\n" + \
-                  "Sensor ID: 0x" + sensor_id + "\n" + \
-                  "Battery_Status: " + battery_status + "\n" + \
-                  "Counter: " + counter + "\n" + \
-                  "Unknown1: " + unknown1 + "\n" + \
-                  "Unknown2: " + unknown2 + "\n" + \
-                  "Self Test Failed: " + self_test + "\n" + \
-                  "Tire Pressure: " + tire_pressure + " | PSI: " + tp_psi + "\n" + \
-                  "T.P. Complement: " + tp_complement + "\n" + \
-                  "Tire Temperature: " + tire_temp + " | Celsius: " + temp_celsius + " | Fahrenheit: " + temp_fahr + "\n" + \
-                  "CRC: " + crc + "\n"
-                  
-            self.message_number = self.message_number + 1
-
-        return msg
+            # Generate Output Message
+            if len(get_diff) >= 66:
+                sensor_id = '%.*X' % (2, int('0b'+get_diff[0:28], 0))
+                battery_status = get_diff[28]
+                counter = get_diff[29:31]
+                unknown1 = get_diff[31]
+                unknown2 = get_diff[32]
+                self_test = get_diff[33]
+                tire_pressure = get_diff[34:42]
+                tp_psi = str((int(tire_pressure,2)-40)*.363)
+                tp_complement = get_diff[42:50]
+                tire_temp = get_diff[50:58]
+                temp_celsius = str(int(tire_temp,2)-40)
+                temp_fahr = str((int(temp_celsius)*9/5)+32)
+                crc = get_diff[58:66]
+                
+                msg = "Message #" + str(self.message_number) + ":\n" + \
+                      "Bitstream: " + get_bits + "\n" + \
+                      "Decoded Bits: " + get_diff + "\n" + \
+                      "Sensor ID: 0x" + sensor_id + "\n" + \
+                      "Battery_Status: " + battery_status + "\n" + \
+                      "Counter: " + counter + "\n" + \
+                      "Unknown1: " + unknown1 + "\n" + \
+                      "Unknown2: " + unknown2 + "\n" + \
+                      "Self Test Failed: " + self_test + "\n" + \
+                      "Tire Pressure: " + tire_pressure + " | PSI: " + tp_psi + "\n" + \
+                      "T.P. Complement: " + tp_complement + "\n" + \
+                      "Tire Temperature: " + tire_temp + " | Celsius: " + temp_celsius + " | Fahrenheit: " + temp_fahr + "\n" + \
+                      "CRC: " + crc + "\n"
+                      
+                self.message_number = self.message_number + 1
+                
+            return msg
+        
+        except:
+            return "-1"
                 
                 
             
