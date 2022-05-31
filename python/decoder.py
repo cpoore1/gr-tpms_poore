@@ -41,6 +41,7 @@ class decoder(gr.sync_block):
         self.message_number = 1
         
         self.message_port_register_out(pmt.intern('out'))          
+        self.message_port_register_out(pmt.intern('bytes'))          
 
 
     def work(self, input_items, output_items):
@@ -236,6 +237,14 @@ class decoder(gr.sync_block):
                       "CRC: " + crc + "\n"
                       
                 self.message_number = self.message_number + 1
+                
+                # Add Excess Bits
+                if len(get_diff)%8 != 0:
+                    get_diff = get_diff + '0'*(8-len(get_diff)%8)
+                
+                # Print Bytes to Output Port    
+                data_hex = ('%0*X' % (2,int(get_diff,2))).zfill(int(len(get_diff)/4))
+                self.message_port_pub(pmt.intern("bytes"), pmt.to_pmt(data_hex))                
                 
             return msg
         
