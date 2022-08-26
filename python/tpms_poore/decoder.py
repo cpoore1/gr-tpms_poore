@@ -240,7 +240,7 @@ class decoder(gr.sync_block):
                 get_diff = get_diff + '0' * (8 - len(get_diff) % 8)
 
             # Print Bytes to Output Port    
-            data_hex = ('%0*X' % (2, int(get_diff, 2))).zfill(len(get_diff) // 4).decode("hex")
+            data_hex = ('%0*X' % (2, int(get_diff, 2))).zfill(len(get_diff) // 4)
             self.message_port_pub(pmt.intern("bytes"), pmt.to_pmt(data_hex))
 
         return msg
