@@ -157,7 +157,7 @@ class message_generator_pdu(gr.sync_block):
             crc_data_bytes = []
             for n in range(0, len(crc_data) // 8):
                 crc_data_bytes.append(int(crc_data[n * 8:n * 8 + 8], 2))
-            crc_data_bytes = str(bytearray(crc_data_bytes))
+            crc_data_bytes = bytearray(crc_data_bytes)
             check_fn = crcmod.mkCrcFun(0x100 | 0x13, initCrc=0x0, rev=False)
             crc = '{0:08b}'.format(check_fn(crc_data_bytes))
 
@@ -193,8 +193,8 @@ class message_generator_pdu(gr.sync_block):
             # there are always a few extra bits, next line needs a round number too
             data = access_code + get_man + '00000'
             hex_data = '%0*X' % ((len(data) + 0) // 4, int(data, 2))  # 03F2D2B4AB4AD2AD555554D2CD4B54CD4CB2A0
-            data = hex_data.decode('hex')  # Python 2
-            # data = bytes.fromhex(hex_string)  # Python 3
+            #data = hex_data.decode('hex')  # Python 2
+            data = bytes.fromhex(hex_data)  # Python 3
 
             # Send the PDU
             car = pmt.make_dict()
